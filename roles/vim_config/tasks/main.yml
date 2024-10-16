@@ -1,0 +1,44 @@
+---
+# tasks file for roles/vim_config
+- name: Install Vim on Ubuntu if not installed
+  ansible.builtin.apt:
+    name: vim
+    state: present
+
+- name: Create .vim folder
+  ansible.builtin.file:
+    owner: "{{ ansible_env.USER }}"
+    path: "{{ ansible_env.HOME }}/.vim"
+    state: directory
+    mode: "755"
+  register: vim_folder
+
+- name: Add subfolders in .vim dir
+  ansible.builtin.file:
+    path: "{{ vim_folder.path }}/{{ item }}"
+    state: directory
+    mode: "755"
+  loop:
+    - autoload
+    - backup
+    - colors
+    - plugged
+
+- name: Create .vimrc file
+  ansible.builtin.file:
+    dest: "{{ ansible_env.HOME }}/.vimrc"
+    state: touch
+    mode: "755"
+  register: vimrc_file
+
+- name: Download and install plugin manager for Vim
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+    dest: "{{ ansible_env.HOME }}/.vim/autoload/"
+    mode: "755"
+
+- name: Add .vimrc file
+  ansible.builtin.copy:
+    src: "./files/.vimrc"
+    dest: "{{ ansible_env.HOME }}"
+    mode: "755"

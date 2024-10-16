@@ -1,0 +1,5 @@
+---
+- name: Configure Linux Environments
+  hosts: localhost
+  roles:
+    - vim_config

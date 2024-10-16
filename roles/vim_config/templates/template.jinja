@@ -1,0 +1,4 @@
+{% if ansible_distribution == 'Ubuntu' %}
+ansible.builtin.apt
+{% elif ansible_distribution =='Centos' %}
+ansible.builtin.yum
