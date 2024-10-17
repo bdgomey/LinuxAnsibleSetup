@@ -4,6 +4,7 @@
   ansible.builtin.apt:
     name: vim
     state: present
+  become: true
 
 - name: Create .vim folder
   ansible.builtin.file:

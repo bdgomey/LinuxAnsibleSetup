@@ -1,2 +1,103 @@
 ---
 # tasks file for roles/base_app_installations
+- name: Update Ubuntu
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install or update packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - curl
+    - git
+    - zip
+    - pacman
+    - pipx
+    - python3-pip
+    - expect
+    - fuse
+
+- name: Install rclone
+  ansible.builtin.shell:
+    cmd: |
+      spawn rclone config
+      expect "n/s/q> n"
+      send "n\r"
+
+      expect "name>"
+      send "google\r"
+
+      expect "Storage>"
+      send "18\r"
+
+      expect "client_id>"
+      send "{{ base_app_installations_client_id }}\r"
+
+      expect "client_secret>"
+      send "{{ base_app_installations_secret }}\r"
+
+      expect "scope>"
+      send "1\r"
+
+      expect "service_account_file>"
+      send "~/.config/serviceaccount.json\r"
+
+      expect "y/n>"
+      send "\r"
+
+      expect "y/n>"
+      send "\r"
+
+      expect "y/n>"
+      send "\r"
+
+      expect "y/e/d>"
+      send "\r"
+
+      expect "e/n/d/r/c/s/q>"
+      send "q\r"
+  args:
+    executable: /bin/expect
+  register: rclone_setup
+  changed_when: rclone_setup.rc != 0
+
+- name: Mount Google Drive to desktop
+  ansible.builtin.shell:
+    cmd: |
+      rclone mount google: ~/Desktop
+  register: drive_sync
+  changed_when: drive_sync.rc != 0
+
+- name: Configure global git user and email
+  ansible.builtin.shell:
+    cmd: |
+      git config --global user.name "Brian Gomes"
+      git config --global user.email "bjgomes78@outlook.com"
+  register: git_config
+  changed_when: git_config.rc != 0
+
+# tasks file for roles/node_installation
+- name: Download Node Script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh
+    mode: '777'
+    dest: /tmp
+
+- name: Install Node with bash
+  ansible.builtin.shell:
+    executable: bash
+    cmd: ./install.sh
+    chdir: /tmp
+  register: install_node
+  changed_when: install_node.rc != 0
+
+- name: Install global NPM packages
+  ansible.builtin.shell:
+    cmd: |
+      npm -g install typescript nodemon
+  register: npm_installations
+  changed_when: npm_installations.rc != 0
+  become: true

@@ -2,4 +2,5 @@
 - name: Configure Linux Environments
   hosts: localhost
   roles:
+    - base_app_installations
     - vim_config
